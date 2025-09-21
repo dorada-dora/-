@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>数字タッチゲーム</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: sans-serif;
+      background-color: #f0f8ff;
+    }
+    #game {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 400px;
+      margin: 20px auto;
+    }
+    .number {
+      width: 80px;
+      height: 80px;
+      margin: 10px;
+      font-size: 32px;
+      border-radius: 15px;
+      background-color: #87cefa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+      transition: background-color 0.2s;
+    }
+    .number.correct {
+      background-color: #32cd32;
+      color: white;
+    }
+    .number.wrong {
+      background-color: #ff6347;
+      color: white;
+    }
+    #message {
+      margin-top: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 22px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>数字タッチゲーム</h1>
+  <div id="game"></div>
+  <div id="message"></div>
+  <div id="result"></div>
+
+  <script>
+    const numbers = Array.from({length: 10}, (_, i) => i + 1);
+    const game = document.getElementById("game");
+    const message = document.getElementById("message");
+    const result = document.getElementById("result");
+    let next = 1;
+    let startTime = null;
+
+    // 音声
+    const correctSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+    const wrongSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+    const clearSound = new Audio("https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg");
+
+    // 数字をランダムに並べる
+    numbers.sort(() => Math.random() - 0.5);
+    numbers.forEach(num => {
+      const btn = document.createElement("div");
+      btn.textContent = num;
+      btn.className = "number";
+      btn.addEventListener("click", () => handleClick(btn, num));
+      game.appendChild(btn);
+    });
+
+    function handleClick(btn, num) {
+      if (num === 1 && next === 1) {
+        // 最初のタッチで時間をスタート
+        startTime = new Date();
+      }
+
+      if (num === next) {
+        btn.classList.add("correct");
+        correctSound.play();
+        if (next === numbers.length) {
+          message.textContent = "クリア！🎉";
+          clearSound.play();
+
+          // 経過時間を計算
+          const endTime = new Date();
+          const elapsed = (endTime - startTime) / 1000; // 秒
+          
+          // ランク判定
+          let rank = "C";
+          if (elapsed < 10) rank = "S";
+          else if (elapsed < 15) rank = "A";
+          else if (elapsed < 20) rank = "B";
+
+          result.textContent = `タイム: ${elapsed.toFixed(2)} 秒　ランク: ${rank}`;
+        }
+        next++;
+      } else {
+        btn.classList.add("wrong");
+        wrongSound.play();
+        setTimeout(() => btn.classList.remove("wrong"), 500);
+        message.textContent = "ちがうよ！😅";
+      }
+    }
+  </script>
+</body>
+</html>
